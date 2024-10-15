@@ -13,15 +13,27 @@ def initialisation() :
     global tour_joueur_1
     global partie_en_cour
 
-    grille_1 = [[0] * 10 for i in range(10)]
-    grille_2 = [[0] * 10 for i in range(10)]
+    grille_1 = [[1] * 10 for i in range(10)]
+    grille_2 = [[2] * 10 for i in range(10)]
     tour_joueur_1 = True
     partie_en_cour = True
 
-    
+def affichage_grille() :
+    """
+    Affichage de la grille du jouer dont c'est actuellement le tour, pas de paramètre d'entré ou de sortie.
+    """
+    if tour_joueur_1 :
+        grille = grille_1
+    else :
+        grille = grille_2
+
+    for x in range(10) :
+        print(grille[x])
+    print("")
 
 
 """================PROGRAMME PRINCIPAL================"""
 
 initialisation()
-while partie_en_cour :
+affichage_grille()
+#while partie_en_cour :
