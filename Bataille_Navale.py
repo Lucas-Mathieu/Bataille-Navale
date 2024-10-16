@@ -73,9 +73,9 @@ def affichage_grille() :
     """
     #vérification du tour
     if tour_joueur_1 :
-        grille = grille_1
-    else :
         grille = grille_2
+    else :
+        grille = grille_1
 
     #affichage dans la console des 10 lignes de la matrice
     for index in range(10) :
@@ -116,28 +116,28 @@ def coordonnees(event) :
 
 def placement(li, col) :
     """
-    Fonction de placement, gère le positionnement des bateaux et des bombardages sur la grille
+    Fonction de placement, gère le positionnement des bateaux tant que la phase de placement est active puis le bombardage sur la grille ennemie
 
-    Prends en paramètre la ligne, la colonne choisie et la direction du bateaux, ne retourne rien. 
+    Prends en paramètre la ligne et la colonne choisie, ne retourne rien. 
     """
     global tour_joueur_1
     global placement1_fini
     global placement_en_cour
     global horizontal
 
-    #assignage des variables en fonction du tour du joueur
-    if tour_joueur_1 :
-        grille = grille_1
-        bateaux = bateaux1
-    else :
-        grille = grille_2
-        bateaux = bateaux2
-
-    #placment initial des bateaux
+    #phase de placement initial des bateaux
     if placement_en_cour :
-        if horizontal :
-            #vérification que le bateau ne dépasse pas de la grille horizontalement
-            if (bateaux[0] + col) <= 10 :
+
+        #assignage des variables en fonction du tour du joueur
+        if tour_joueur_1 :
+            grille = grille_1
+            bateaux = bateaux1
+        else :
+            grille = grille_2
+            bateaux = bateaux2
+
+        if horizontal : #si le placment est horizontal
+            if (bateaux[0] + col) <= 10 : #vérification que le bateau ne dépasse pas de la grille horizontalement
                 champs_libre = True
 
                 #vérification qu'un autre bateau ne bloque pas celui qu'on place, je sais que c'est pas beau mais c'est la meilleure idée que j'ai...
@@ -154,9 +154,8 @@ def placement(li, col) :
             else :
                 print("Le bateau dépasse de la grille !")
 
-        else :
-            #vérification que le bateau ne dépasse pas de la grille verticalement
-            if (bateaux[0] + li) <= 10 :
+        else : #si le placment est vertical
+            if (bateaux[0] + li) <= 10 : #vérification que le bateau ne dépasse pas de la grille verticalement
                 champs_libre = True
 
                 #vérification qu'un autre bateau ne bloque pas celui qu'on place, je sais que c'est pas beau mais c'est la meilleure idée que j'ai...
@@ -185,7 +184,22 @@ def placement(li, col) :
 
     #phase de bombaradage des bateaux
     else :
-        print("JEU")
+        affichage_grille()
+        #assignage du tableau en fonction du tour du joueur
+        if tour_joueur_1 :
+            grille = grille_2
+        else :
+            grille = grille_1
+
+        #vérification de l'etat de la case et 
+        if grille[li][col] == 0 :
+            grille[li][col] = 6
+            dessin_bombe(li, col, False)   
+        elif grille[li][col] == 6 or grille[li][col] == 7 :
+            print("Vous avez déja bombardé cette case")
+        else :
+            grille[li][col] = 7
+            dessin_bombe(li, col, True)    
 
 def dessin_bateaux(li,col, horizontal, long) :
     """
@@ -197,11 +211,16 @@ def dessin_bateaux(li,col, horizontal, long) :
     long : int indiquant la longueur du bateau
     """
     if horizontal :
-        Zone.create_oval(col*60 + 6 , li*60 + 102, col*60 + 61 + (60*(long-1)), li*60 + 157 ,width=2 ,outline="black",fill="cyan")
+        Zone.create_oval(col*60 + 6 , li*60 + 102, col*60 + 61 + (60*(long-1)), li*60 + 157, width=2 ,outline="black",fill="cyan")
     else :
-        Zone.create_oval(col*60 + 6 , li*60 + 102, col*60 + 61, li*60 + 157 + (60*(long-1)),width=2 ,outline="black",fill="cyan")
+        Zone.create_oval(col*60 + 6 , li*60 + 102, col*60 + 61, li*60 + 157 + (60*(long-1)), width=2 ,outline="black",fill="cyan")
     Zone.update ()
-    
+
+def dessin_bombe(li, col, touche) :
+    if touche :
+        Zone.create_oval(col*60 + 6 , li*60 + 102, col*60 + 61, li*60 + 157, width=2 ,outline="black",fill="red")
+    else :
+        Zone.create_oval(col*60 + 6 , li*60 + 102, col*60 + 61, li*60 + 157, width=2 ,outline="black",fill="white")
 
 
 """================PROGRAMME PRINCIPAL================"""
@@ -214,12 +233,8 @@ fen.bind('<Button-3>',direction) #assignage de la fonction direction au clic dro
 Zone=Canvas(fen,width=606,height=702,bg="grey") #création du fond gris servant de référentiel pour les coordonnées
 Zone.place(x=0,y=0) #initialisation du référentiel pour les coordonnées
 
-
 initialisation()
-affichage_grille()
 dessin_grille()
 #while partie_en_cour :
-    
-
 
 fen.mainloop()
