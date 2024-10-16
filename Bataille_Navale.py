@@ -10,6 +10,7 @@ def initialisation() :
     placement_en_cour : Boolean indiquant si c'est la phase de placement des bateau
     bateaux1/2 : liste d'entiers indiquant la longueur des différents bateaux de chaque joueurs
     horizontal : Boolean indiquant si le bateau que l'on souhaite placer est horizontal ou vertical
+    placement1_fini : Boolean indiquant si le joueur 1 a finis de placer ses bateaux 
     """
     global grille_1 
     global grille_2
@@ -19,6 +20,7 @@ def initialisation() :
     global bateaux1
     global bateaux2
     global horizontal
+    global placement1_fini
 
     grille_1 = [[0] * 10 for x in range(10)]
     grille_2 = [[0] * 10 for x in range(10)]
@@ -28,6 +30,7 @@ def initialisation() :
     bateaux1 = [5,4,3,3,2]
     bateaux2 = [5,4,3,3,2]
     horizontal = True
+    placement1_fini = False
 
 def dessin_grille() :
     """
@@ -35,6 +38,8 @@ def dessin_grille() :
 
     Pas de paramètre d'entrée ou de sortie.
     """
+    #remplissage du fond en gris
+    Zone.create_rectangle (0, 0, 606, 702, fill="grey")
     # dessin des lignes verticales
     écart = 4
     for x in range(11):
@@ -89,7 +94,7 @@ def direction(event):
     if horizontal :
         print("Horizontal")
     else :
-        print("verical")
+        print("vertical")
 
 def coordonnees(event) :
     """
@@ -116,6 +121,7 @@ def placement(li, col) :
     Prends en paramètre la ligne, la colonne choisie et la direction du bateaux, ne retourne rien. 
     """
     global tour_joueur_1
+    global placement1_fini
     global placement_en_cour
     global horizontal
 
@@ -167,15 +173,15 @@ def placement(li, col) :
             else :
                 print("Le bateau dépasse de la grille !")
 
-        affichage_grille()
-
-
         #changement de tour si les bateaux du joueur 1 sont placé et passage a la phase suivante si c'est l cas des bateaux du joueur 2
-        if not bateaux1 :
+        if not bateaux1 and not placement1_fini:
             tour_joueur_1 = False
+            placement1_fini = True
+            dessin_grille()
         if not bateaux2 :
             tour_joueur_1 = True
             placement_en_cour = False
+            dessin_grille()
 
     #phase de bombaradage des bateaux
     else :
@@ -190,9 +196,10 @@ def dessin_bateaux(li,col, horizontal, long) :
     horizontal : Boolean indiquant l'horizontalité ou non du bateau
     long : int indiquant la longueur du bateau
     """
-    print("TEST")
     if horizontal :
         Zone.create_oval(col*60 + 6 , li*60 + 102, col*60 + 61 + (60*(long-1)), li*60 + 157 ,width=2 ,outline="black",fill="cyan")
+    else :
+        Zone.create_oval(col*60 + 6 , li*60 + 102, col*60 + 61, li*60 + 157 + (60*(long-1)),width=2 ,outline="black",fill="cyan")
     Zone.update ()
     
 
@@ -202,10 +209,10 @@ def dessin_bateaux(li,col, horizontal, long) :
 fen=Tk()
 fen.geometry ("606x702")
 fen.title ("Bataille Navale")
-fen.bind('<Button-1>',coordonnees)
-fen.bind('<Button-3>',direction)
-Zone=Canvas(fen,width=606,height=702,bg="grey")
-Zone.place(x=0,y=0)
+fen.bind('<Button-1>',coordonnees) #assignage de la fontion coordonnees au clic gauche
+fen.bind('<Button-3>',direction) #assignage de la fonction direction au clic droit
+Zone=Canvas(fen,width=606,height=702,bg="grey") #création du fond gris servant de référentiel pour les coordonnées
+Zone.place(x=0,y=0) #initialisation du référentiel pour les coordonnées
 
 
 initialisation()
