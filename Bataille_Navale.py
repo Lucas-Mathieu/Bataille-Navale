@@ -1,5 +1,5 @@
 from tkinter import *
-
+import time
 
 def initialisation() :
     """
@@ -65,11 +65,11 @@ def affichage_grille() :
     Affichage de la grille du jouer dont c'est actuellement le tour dans la console, pas de paramètre d'entré ou de sortie.
 
     0 : vide
-    1 : bateau 1X2
-    2 : bateau 1X3
-    3 : bateau 1X3
-    4 : bateau 1X4
-    5 : bateau 1X5
+    1 : Torpilleur (2 cases)
+    2 : Sous-marin (3 cases)
+    3 : Contre torpilleur (3 cases)
+    4 : Croiseur (4 cases)
+    5 : Porte-avions (5 cases)
     6 : bombe raté
     7 : bombe touché
 
@@ -116,7 +116,7 @@ def coordonnees(event) :
             placement(li, col)
 
         else :  #message d'erreur si hors de la grille
-            print("Clic en dehors de la grille")
+            dessin_message("Clic en dehors de la grille")
 
 def placement(li, col) :
     """
@@ -155,9 +155,9 @@ def placement(li, col) :
                         grille[li][col + index] = len(bateaux) 
                     dessin_bateaux(li,col, True, bateaux.pop(0)) 
                 else :
-                    print("Le bateau est bloqué par un autre bateau déjà placé !")
+                    dessin_message("Le bateau est bloqué par un autre bateau déjà placé !")
             else :
-                print("Le bateau dépasse de la grille !")
+                dessin_message("Le bateau dépasse de la grille !")
 
         else : #si le placment est vertical
             if (bateaux[0] + li) <= 10 : #vérification que le bateau ne dépasse pas de la grille verticalement
@@ -173,9 +173,9 @@ def placement(li, col) :
                         grille[li + index][col] = len(bateaux) 
                     dessin_bateaux(li,col, False, bateaux.pop(0))
                 else :
-                    print("Le bateau est bloqué par un autre bateau déjà placé !")
+                    dessin_message("Le bateau est bloqué par un autre bateau déjà placé !")
             else :
-                print("Le bateau dépasse de la grille !")
+                dessin_message("Le bateau dépasse de la grille !")
 
         #changement de tour si les bateaux du joueur 1 sont placé et passage a la phase suivante si c'est l cas des bateaux du joueur 2
         if not bateaux1 and not placement1_fini:
@@ -195,18 +195,33 @@ def placement(li, col) :
         else :
             grille = grille_1
 
-        #vérification de l'etat de la case et 
-        if grille[li][col] == 0 :
+        #vérification de l'etat de la case et assignage de son nouvel état après bombardement
+        if grille[li][col] == 0 : #bombardement raté si la case est vide
             grille[li][col] = 6
             dessin_bombe(li, col, False)   
-        elif grille[li][col] == 6 or grille[li][col] == 7 :
-            print("Vous avez déja bombardé cette case")
-        else :
+        elif grille[li][col] == 6 or grille[li][col] == 7 : #message d'erreur si la case à déjà été bombardée
+            dessin_message("Vous avez déja bombardé cette case")
+        else : #bombardement touché car dernier cas possible : case occupée par bateau
             grille[li][col] = 7
-            dessin_bombe(li, col, True)    
+            dessin_bombe(li, col, True)
 
+        """bateaux_coulé = True
+        for li in range(len(grille)) :
+            if 1 in grille[li] :
+                bateaux_coulé = False
+
+        if bateaux_coulé :
+            victoire()
+        else :"""
         tour_joueur_1 = not tour_joueur_1
         dessin_autre_joueur()
+
+def dessin_message(txt):
+    Zone.create_text(310, 75, text=txt, font=("Arial", 14), fill="black")
+    Zone.update ()
+    time.sleep(0.8)
+    Zone.create_rectangle (0, 0, 606, 96, fill="grey")
+    Zone.update ()
 
 def dessin_autre_joueur() :
     """
@@ -218,10 +233,8 @@ def dessin_autre_joueur() :
     #assignage du tableau en fonction du tour du joueur
     if tour_joueur_1 :
         grille = grille_2
-        print("TOUR JOUEUR 1")
     else :
         grille = grille_1
-        print("TOUR JOUEUR 2")
 
     for li in range(len(grille)) :
         for col in range (len(grille[li])) :
@@ -250,7 +263,10 @@ def dessin_bombe(li, col, touche) :
         Zone.create_oval(col*60 + 6 , li*60 + 102, col*60 + 61, li*60 + 157, width=2 ,outline="black",fill="red")
     else :
         Zone.create_oval(col*60 + 6 , li*60 + 102, col*60 + 61, li*60 + 157, width=2 ,outline="black",fill="white")
+    Zone.update ()
 
+def victoire(gagnant) :
+    dessin_message("qq a gnagné, jsp qui")
 
 """================PROGRAMME PRINCIPAL================"""
 
