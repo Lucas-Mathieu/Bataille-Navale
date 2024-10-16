@@ -55,9 +55,17 @@ def affichage_grille() :
     """
     Affichage de la grille du jouer dont c'est actuellement le tour dans la console, pas de paramètre d'entré ou de sortie.
 
+    0 : vide
+    1 : bateau 1X2
+    2 : bateau 1X3
+    3 : bateau 1X3
+    4 : bateau 1X4
+    5 : bateau 1X5
+    6 : bombe raté
+    7 : bombe touché
+
     Cette fonction est surtout présente pour des raisons de tests
     """
-
     #vérification du tour
     if tour_joueur_1 :
         grille = grille_1
@@ -122,21 +130,40 @@ def placement(li, col) :
     #placment initial des bateaux
     if placement_en_cour :
         if horizontal :
-
             #vérification que le bateau ne dépasse pas de la grille horizontalement
             if (bateaux[0] + col) <= 10 :
-                placer = bateaux.pop(0)
-                for index in range(0, placer) :
-                    grille[li][col + index] = len(bateaux) + 1
+                champs_libre = True
+
+                #vérification qu'un autre bateau ne bloque pas celui qu'on place, je sais que c'est pas beau mais c'est la meilleure idée que j'ai...
+                for index in range(0, bateaux[0]) :
+                        if grille[li][col + index] != 0 :
+                            champs_libre = False
+                if champs_libre :
+                    #placement du bateau sans oublier de le retirer de la liste des bateaux a placer
+                    for index in range(0, bateaux[0]) :
+                        grille[li][col + index] = len(bateaux) 
+                    dessin_bateaux(li,col, True, bateaux.pop(0))
+                else :
+                    print("Le bateau est bloqué par un autre bateau déjà placé !")
             else :
                 print("Le bateau dépasse de la grille !")
 
         else :
             #vérification que le bateau ne dépasse pas de la grille verticalement
             if (bateaux[0] + li) <= 10 :
-                placer = bateaux.pop(0)
-                for index in range(0, placer) :
-                    grille[li + index][col] = len(bateaux) + 1
+                champs_libre = True
+
+                #vérification qu'un autre bateau ne bloque pas celui qu'on place, je sais que c'est pas beau mais c'est la meilleure idée que j'ai...
+                for index in range(0, bateaux[0]) :
+                        if grille[li + index][col] != 0 :
+                            champs_libre = False
+                if champs_libre :
+                    #placement du bateau sans oublier de le retirer de la liste des bateaux a placer
+                    for index in range(0, bateaux[0]) :
+                        grille[li + index][col] = len(bateaux) 
+                    dessin_bateaux(li,col, False, bateaux.pop(0))
+                else :
+                    print("Le bateau est bloqué par un autre bateau déjà placé !")
             else :
                 print("Le bateau dépasse de la grille !")
 
@@ -154,8 +181,19 @@ def placement(li, col) :
     else :
         print("JEU")
 
+def dessin_bateaux(li,col, horizontal, long) :
+    """
+    Dessine le bateaux selon les paramètres d'entré suivants :
 
-
+    li : int indiquant la ligne du bateaux
+    col : int indiquant la colone du bateaux
+    horizontal : Boolean indiquant l'horizontalité ou non du bateau
+    long : int indiquant la longueur du bateau
+    """
+    print("TEST")
+    if horizontal :
+        Zone.create_oval(col*60 + 6 , li*60 + 102, col*60 + 61 + (60*(long-1)), li*60 + 157 ,width=2 ,outline="black",fill="cyan")
+    Zone.update ()
     
 
 
