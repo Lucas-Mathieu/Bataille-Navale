@@ -43,7 +43,7 @@ def dessin_grille() :
     Pas de paramètre d'entrée ou de sortie.
     """
     #remplissage du fond en gris
-    Zone.create_rectangle (0, 0, 606, 702, fill="grey")
+    Zone.create_rectangle (0, 100, 606, 702, fill="grey", outline="grey")
     # dessin des lignes verticales
     écart = 4
     for x in range(11):
@@ -108,15 +108,18 @@ def coordonnees(event) :
 
     Pas de paramètre en entrée ou sortie.
     """
-    if saisie : # vérifie si la saisie est activée
-        col = event.x // 60 #détermination de la colonne avec une division euclidienne des coordonnées verticales par la taille des cases
-        li = (event.y-100) // 60 #détermination de la ligne avec une division euclidienne des coordonnées horizontales par la taille des cases en prenant en compte la marge de 100 pixels pour la ligne
+    global saisie
 
-        if li >= 0 : #verification que le clic est dans la grille et non la marge en haut
-            placement(li, col)
+    if saisie :
+        if saisie : # vérifie si la saisie est activée
+            col = event.x // 60 #détermination de la colonne avec une division euclidienne des coordonnées verticales par la taille des cases
+            li = (event.y-100) // 60 #détermination de la ligne avec une division euclidienne des coordonnées horizontales par la taille des cases en prenant en compte la marge de 100 pixels pour la ligne
 
-        else :  #message d'erreur si hors de la grille
-            dessin_message("Clic en dehors de la grille")
+            if li >= 0 : #verification que le clic est dans la grille et non la marge en haut
+                placement(li, col)
+
+            else :  #message d'erreur si hors de la grille
+                dessin_message("Clic en dehors de la grille")
 
 def placement(li, col) :
     """
@@ -128,6 +131,8 @@ def placement(li, col) :
     global placement1_fini
     global placement_en_cour
     global horizontal
+
+    dessin_message("")
 
     #phase de placement initial des bateaux
     if placement_en_cour :
@@ -182,10 +187,12 @@ def placement(li, col) :
             tour_joueur_1 = False
             placement1_fini = True
             dessin_grille()
+            dessin_tour(tour_joueur_1)
         if not bateaux2 :
             tour_joueur_1 = True
             placement_en_cour = False
             dessin_grille()
+            dessin_tour(tour_joueur_1)
 
     else : #phase de bombaradage des bateaux
 
@@ -198,29 +205,41 @@ def placement(li, col) :
         #vérification de l'etat de la case et assignage de son nouvel état après bombardement
         if grille[li][col] == 0 : #bombardement raté si la case est vide
             grille[li][col] = 6
-            dessin_bombe(li, col, False)   
+            dessin_bombe(li, col, False)
+            dessin_message("Coulé...")
+
+            time.sleep(0.5)
+            tour_joueur_1 = not tour_joueur_1
+            dessin_tour(tour_joueur_1)
+            dessin_autre_joueur()
+
         elif grille[li][col] == 6 or grille[li][col] == 7 : #message d'erreur si la case à déjà été bombardée
             dessin_message("Vous avez déja bombardé cette case")
+
         else : #bombardement touché car dernier cas possible : case occupée par bateau
             grille[li][col] = 7
             dessin_bombe(li, col, True)
+            dessin_message("Touché !")
 
-        """bateaux_coulé = True
-        for li in range(len(grille)) :
-            if 1 in grille[li] :
-                bateaux_coulé = False
+            bateaux_coulé = True
+            for li in range(len(grille)) :
+                if 1 in grille[li] or 2 in grille[li] or 3 in grille[li] or 4 in grille[li] or 5 in grille[li] :
+                    bateaux_coulé = False
+            if bateaux_coulé :
+                victoire(tour_joueur_1)
 
-        if bateaux_coulé :
-            victoire()
-        else :"""
-        tour_joueur_1 = not tour_joueur_1
-        dessin_autre_joueur()
+def dessin_tour(joueur1) :
+    if joueur1 :
+        txt = "Joueur 1"
+    else :
+        txt = "Joueur 2"
+
+    Zone.create_rectangle (0, 0, 606, 50, fill="grey", outline="grey")
+    Zone.create_text(310, 25, text="Tour du " + txt, font=("Arial", 14), fill="black")
 
 def dessin_message(txt):
+    Zone.create_rectangle (0, 50, 606, 96, fill="grey", outline="grey")
     Zone.create_text(310, 75, text=txt, font=("Arial", 14), fill="black")
-    Zone.update ()
-    time.sleep(0.8)
-    Zone.create_rectangle (0, 0, 606, 96, fill="grey")
     Zone.update ()
 
 def dessin_autre_joueur() :
@@ -230,6 +249,7 @@ def dessin_autre_joueur() :
     Pas de paramètre d'entrée ou de sortie
     """
     dessin_grille()
+    dessin_message("")
     #assignage du tableau en fonction du tour du joueur
     if tour_joueur_1 :
         grille = grille_2
@@ -265,8 +285,16 @@ def dessin_bombe(li, col, touche) :
         Zone.create_oval(col*60 + 6 , li*60 + 102, col*60 + 61, li*60 + 157, width=2 ,outline="black",fill="white")
     Zone.update ()
 
-def victoire(gagnant) :
-    dessin_message("qq a gnagné, jsp qui")
+def victoire(tour_joueur1) :
+    global saisie
+
+    if tour_joueur1 :
+        gagnant = "Joueur 1"
+    else :
+        gagnant = "Joueur 2"
+
+    dessin_message("Le " + gagnant + " a gagné la partie !")
+    saisie = False
 
 """================PROGRAMME PRINCIPAL================"""
 
@@ -280,7 +308,7 @@ Zone.place(x=0,y=0) #initialisation du référentiel pour les coordonnées
 
 initialisation()
 dessin_grille()
-
+dessin_tour("Joueur 1")
 
 
 fen.mainloop()
