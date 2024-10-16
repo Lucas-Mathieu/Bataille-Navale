@@ -1,5 +1,6 @@
 from tkinter import *
 
+
 def initialisation() :
     """
     Initialisation des varibles globales nécessaires au fonctionement de jeu, pas de paramètres d'entré ou de sortie.
@@ -11,6 +12,7 @@ def initialisation() :
     bateaux1/2 : liste d'entiers indiquant la longueur des différents bateaux de chaque joueurs
     horizontal : Boolean indiquant si le bateau que l'on souhaite placer est horizontal ou vertical
     placement1_fini : Boolean indiquant si le joueur 1 a finis de placer ses bateaux 
+    saisie : Boolean indiquant au fonctions associés aux clics de la souris si elle peuvent fonctionner
     """
     global grille_1 
     global grille_2
@@ -21,6 +23,7 @@ def initialisation() :
     global bateaux2
     global horizontal
     global placement1_fini
+    global saisie
 
     grille_1 = [[0] * 10 for x in range(10)]
     grille_2 = [[0] * 10 for x in range(10)]
@@ -31,6 +34,7 @@ def initialisation() :
     bateaux2 = [5,4,3,3,2]
     horizontal = True
     placement1_fini = False
+    saisie = True
 
 def dessin_grille() :
     """
@@ -84,35 +88,35 @@ def affichage_grille() :
 
 def direction(event):
     """
-    Change la direction de placement du bateau en vertical ou horizontal en fonction de l'inverse du boolean associé a cet aspect
+    Change la direction de placement du bateau en vertical ou horizontal en fonction de l'inverse du boolean associé a cet aspect is la saisie est activée
 
     Pas de paramètres d'entrée ou de sortie
     """
     global horizontal
+    global saisie
 
-    horizontal = not horizontal
-    if horizontal :
-        print("Horizontal")
-    else :
-        print("vertical")
+    if saisie : # vérifie si la saisie est activée
+        horizontal = not horizontal
+        if horizontal :
+            print("Horizontal")
+        else :
+            print("vertical")
 
 def coordonnees(event) :
     """
-    Cette fonction est appelé à chaque clic et calcul la case choisie a partir des coordonnées de la souris
+    Cette fonction est appelé à chaque clic et calcul la case choisie a partir des coordonnées de la souris si la saisie est activée
 
     Pas de paramètre en entrée ou sortie.
     """
-    #détermination de la case avec une division euclidienne des coordonnées par la taille des cases en prenant en compte la marge de 100 pixels pour la ligne
-    col = event.x // 60
-    li = (event.y-100) // 60
+    if saisie : # vérifie si la saisie est activée
+        col = event.x // 60 #détermination de la colonne avec une division euclidienne des coordonnées verticales par la taille des cases
+        li = (event.y-100) // 60 #détermination de la ligne avec une division euclidienne des coordonnées horizontales par la taille des cases en prenant en compte la marge de 100 pixels pour la ligne
 
-    #verification que le clic est dans la grille et non la marge en haut
-    if li >= 0 :
-        placement(li, col)
+        if li >= 0 : #verification que le clic est dans la grille et non la marge en haut
+            placement(li, col)
 
-    #message d'erreur si hors de la grille
-    else :
-        print("Clic en dehors de la grille")
+        else :  #message d'erreur si hors de la grille
+            print("Clic en dehors de la grille")
 
 def placement(li, col) :
     """
@@ -145,10 +149,11 @@ def placement(li, col) :
                         if grille[li][col + index] != 0 :
                             champs_libre = False
                 if champs_libre :
+
                     #placement du bateau sans oublier de le retirer de la liste des bateaux a placer
                     for index in range(0, bateaux[0]) :
                         grille[li][col + index] = len(bateaux) 
-                    dessin_bateaux(li,col, True, bateaux.pop(0))
+                    dessin_bateaux(li,col, True, bateaux.pop(0)) 
                 else :
                     print("Le bateau est bloqué par un autre bateau déjà placé !")
             else :
@@ -182,9 +187,8 @@ def placement(li, col) :
             placement_en_cour = False
             dessin_grille()
 
-    #phase de bombaradage des bateaux
-    else :
-        affichage_grille()
+    else : #phase de bombaradage des bateaux
+
         #assignage du tableau en fonction du tour du joueur
         if tour_joueur_1 :
             grille = grille_2
@@ -200,6 +204,31 @@ def placement(li, col) :
         else :
             grille[li][col] = 7
             dessin_bombe(li, col, True)    
+
+        tour_joueur_1 = not tour_joueur_1
+        dessin_autre_joueur()
+
+def dessin_autre_joueur() :
+    """
+    Dessine dans l'interface graphique la grille de l'autre joueur lors des changement de tour,
+
+    Pas de paramètre d'entrée ou de sortie
+    """
+    dessin_grille()
+    #assignage du tableau en fonction du tour du joueur
+    if tour_joueur_1 :
+        grille = grille_2
+        print("TOUR JOUEUR 1")
+    else :
+        grille = grille_1
+        print("TOUR JOUEUR 2")
+
+    for li in range(len(grille)) :
+        for col in range (len(grille[li])) :
+            if grille[li][col] == 6 :
+                dessin_bombe(li, col, False)  
+            elif grille[li][col] == 7 :
+                dessin_bombe(li, col, True) 
 
 def dessin_bateaux(li,col, horizontal, long) :
     """
@@ -235,6 +264,7 @@ Zone.place(x=0,y=0) #initialisation du référentiel pour les coordonnées
 
 initialisation()
 dessin_grille()
-#while partie_en_cour :
+
+
 
 fen.mainloop()
