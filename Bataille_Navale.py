@@ -1,6 +1,7 @@
 from tkinter import *
 import time
 import random
+import os
 
 def initialisation() :
     """
@@ -26,7 +27,6 @@ def initialisation() :
     grille_1 = [[0] * 10 for x in range(10)]
     grille_2 = [[0] * 10 for x in range(10)]
     tour_joueur_1 = True
-    partie_en_cour = True
     placement_en_cour = True
     bateaux1 = [5,4,3,3,2]
     bateaux2 = [5,4,3,3,2]
@@ -731,6 +731,38 @@ def dessin_bombe(li, col, touche) :
         Zone.create_oval(col*60 + 6 , li*60 + 102, col*60 + 61, li*60 + 157, width=2 ,outline="black",fill="white")
     Zone.update () #met a jour la fenêtre pour que les changements soient déssinés
 
+def sauvegarde() :
+    """
+    Sauvegarde les données de la partie dans un fichier texte..
+    """
+    global grille_1, grille_2, tour_joueur_1, placement_en_cour
+    global bateaux1, bateaux2, horizontal, placement1_fini, saisie, opposant
+    global mode_chasse, coord_bateau_touché, direction_IA
+
+    # Obtenir le répertoire courant
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    fichier = os.path.join(current_directory, "sauvegarde.txt")
+
+    #enregistrement de toutes les variables globales
+    if not placement_en_cour :
+        with open(fichier, 'w') as f:
+            f.write(f"grille_1: {grille_1}\n")
+            f.write(f"grille_2: {grille_2}\n")
+            f.write(f"tour_joueur_1: {tour_joueur_1}\n")
+            f.write(f"placement_en_cour: {placement_en_cour}\n")
+            f.write(f"bateaux1: {bateaux1}\n")
+            f.write(f"bateaux2: {bateaux2}\n")
+            f.write(f"horizontal: {horizontal}\n")
+            f.write(f"placement1_fini: {placement1_fini}\n")
+            f.write(f"saisie: {saisie}\n")
+            f.write(f"opposant: {opposant}\n")
+            f.write(f"mode_chasse: {mode_chasse}\n")
+            f.write(f"coord_bateau_touché: {coord_bateau_touché}\n")
+            f.write(f"direction_IA: {direction_IA}\n")
+    else : 
+        dessin_message("Vous devez placer les bateaux pour pouvoir sauvegarder.")
+
+
 """================PROGRAMME PRINCIPAL================"""
 
 fen=Tk() #initialisation de la méthode Tkinter avec l'objet fen
@@ -746,6 +778,9 @@ slection_ia_facile.place(x=5, y=5)
 
 slection_ia_dificile=Button(fen, text="IA Difficile",command=activation_ia_difficile)
 slection_ia_dificile.place(x=5, y=35)
+
+sauvegarder=Button(fen, text="Sauvegarder",command=sauvegarde)
+sauvegarder.place(x=527, y=5)
 
 initialisation()
 dessin_grille()
