@@ -13,6 +13,7 @@ def initialisation() :
     horizontal : Boolean indiquant si le bateau que l'on souhaite placer est horizontal ou vertical
     placement1_fini : Boolean indiquant si le joueur 1 a finis de placer ses bateaux 
     saisie : Boolean indiquant au fonctions associés aux clics de la souris si elle peuvent fonctionner
+    opposant : int définissant l'opposant : 0 = joueur, 1 : IA facile, 2 : IA difficile
     """
     global grille_1 
     global grille_2
@@ -24,6 +25,7 @@ def initialisation() :
     global horizontal
     global placement1_fini
     global saisie
+    global opposant
 
     grille_1 = [[0] * 10 for x in range(10)]
     grille_2 = [[0] * 10 for x in range(10)]
@@ -35,30 +37,26 @@ def initialisation() :
     horizontal = True
     placement1_fini = False
     saisie = True
+    opposant = 0
 
-def dessin_grille() :
-    """
-    Dessin des lignes verticales et horizontale de la grille dans la fenêtre de jeu à l'aide de tkinter.
+def activation_ia_facile() :
+    global opposant
+    if opposant == 1 :
+        opposant = 0
+        dessin_message("IA désactivée")
+    else :
+        opposant = 1
+        dessin_message("IA mode facile activé")
 
-    Pas de paramètre d'entrée ou de sortie.
-    """
-    #remplissage du fond en gris
-    Zone.create_rectangle (0, 100, 606, 702, fill="grey", outline="grey")
-    # dessin des lignes verticales
-    écart = 4
-    for x in range(11):
-        haut = 100
-        bas = 700
-        Zone.create_line (écart, haut, écart, bas, width=4, fill="blue")
-        écart += 60
+def activation_ia_difficile() :
+    global opposant
+    if opposant == 2 :
+        opposant = 0
+        dessin_message("IA désactivée")
 
-    # dessin des lignes horizontales
-    écart = 100
-    for x in range(11):
-        gauche = 0
-        droite = 700
-        Zone.create_line (gauche , écart , droite , écart ,width=4,fill="blue")
-        écart += 60
+    else :
+        opposant = 2
+        dessin_message("IA mode difficile activé")
 
 def affichage_grille() :
     """
@@ -246,6 +244,41 @@ def placement(li, col) :
                 if bateaux_coulé : #si plus de bateaux : victoire
                     victoire(tour_joueur_1)
 
+def victoire(tour_joueur1) :
+    global saisie
+
+    if tour_joueur1 :
+        gagnant = "Joueur 1"
+    else :
+        gagnant = "Joueur 2"
+
+    dessin_message("Le " + gagnant + " a gagné la partie !")
+    saisie = False
+
+def dessin_grille() :
+    """
+    Dessin des lignes verticales et horizontale de la grille dans la fenêtre de jeu à l'aide de tkinter.
+
+    Pas de paramètre d'entrée ou de sortie.
+    """
+    #remplissage du fond en gris
+    Zone.create_rectangle (0, 100, 606, 702, fill="grey", outline="grey")
+    # dessin des lignes verticales
+    écart = 4
+    for x in range(11):
+        haut = 100
+        bas = 700
+        Zone.create_line (écart, haut, écart, bas, width=4, fill="blue")
+        écart += 60
+
+    # dessin des lignes horizontales
+    écart = 100
+    for x in range(11):
+        gauche = 0
+        droite = 700
+        Zone.create_line (gauche , écart , droite , écart ,width=4,fill="blue")
+        écart += 60
+
 def dessin_tour(joueur1) :
     if joueur1 :
         txt = "Joueur 1"
@@ -303,17 +336,6 @@ def dessin_bombe(li, col, touche) :
         Zone.create_oval(col*60 + 6 , li*60 + 102, col*60 + 61, li*60 + 157, width=2 ,outline="black",fill="white")
     Zone.update ()
 
-def victoire(tour_joueur1) :
-    global saisie
-
-    if tour_joueur1 :
-        gagnant = "Joueur 1"
-    else :
-        gagnant = "Joueur 2"
-
-    dessin_message("Le " + gagnant + " a gagné la partie !")
-    saisie = False
-
 """================PROGRAMME PRINCIPAL================"""
 
 fen=Tk() #initialisation de la méthode Tkinter avec l'objet fen
@@ -323,6 +345,12 @@ fen.bind('<Button-1>',coordonnees) #assignage de la fontion coordonnees au clic 
 fen.bind('<Button-3>',direction) #assignage de la fonction direction au clic droit
 Zone=Canvas(fen,width=606,height=702,bg="grey") #création du fond gris servant de référentiel pour les coordonnées
 Zone.place(x=0,y=0) #initialisation du référentiel pour les coordonnées
+
+slection_ia_facile=Button(fen, text="IA Facile",command=activation_ia_facile)
+slection_ia_facile.place(x=5, y=5)
+
+slection_ia_dificile=Button(fen, text="IA Difficile",command=activation_ia_difficile)
+slection_ia_dificile.place(x=5, y=35)
 
 initialisation()
 dessin_grille()
