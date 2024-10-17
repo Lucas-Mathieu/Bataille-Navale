@@ -1,5 +1,6 @@
 from tkinter import *
 import time
+import random
 
 def initialisation() :
     """
@@ -14,6 +15,8 @@ def initialisation() :
     placement1_fini : Boolean indiquant si le joueur 1 a finis de placer ses bateaux 
     saisie : Boolean indiquant au fonctions associés aux clics de la souris si elle peuvent fonctionner
     opposant : int définissant l'opposant : 0 = joueur, 1 : IA facile, 2 : IA difficile
+    mode_chasse : boolean indiquant à l'ia si elle est en mode chasse ou non
+    coord_bateau_touché : tuple ayant les coordonnées du bateau touché par l'ia
     """
     global grille_1 
     global grille_2
@@ -26,6 +29,9 @@ def initialisation() :
     global placement1_fini
     global saisie
     global opposant
+    global mode_chasse
+    global coord_bateau_touché
+    global direction_IA
 
     grille_1 = [[0] * 10 for x in range(10)]
     grille_2 = [[0] * 10 for x in range(10)]
@@ -38,25 +44,38 @@ def initialisation() :
     placement1_fini = False
     saisie = True
     opposant = 0
+    mode_chasse = False
+    coord_bateau_touché = (-1,-1)
+    direction_IA = 0
 
 def activation_ia_facile() :
     global opposant
-    if opposant == 1 :
-        opposant = 0
-        dessin_message("IA désactivée")
+    global tour_joueur_1
+
+    if tour_joueur_1 :
+        if opposant == 1 :
+            opposant = 0
+            dessin_message("IA désactivée")
+        else :
+            opposant = 1
+            dessin_message("IA mode facile activé")
     else :
-        opposant = 1
-        dessin_message("IA mode facile activé")
+        dessin_message("Impossible de changer l'opposant lors de son tour")
 
 def activation_ia_difficile() :
     global opposant
-    if opposant == 2 :
-        opposant = 0
-        dessin_message("IA désactivée")
+    global tour_joueur_1
 
+    if tour_joueur_1 :
+        if opposant == 2 :
+            opposant = 0
+            dessin_message("IA désactivée")
+
+        else :
+            opposant = 2
+            dessin_message("IA mode difficile activé")
     else :
-        opposant = 2
-        dessin_message("IA mode difficile activé")
+        dessin_message("Impossible de changer l'opposant lors de son tour")
 
 def affichage_grille() :
     """
@@ -77,11 +96,11 @@ def affichage_grille() :
     if tour_joueur_1 :
         grille = grille_2
     else :
-        grille = grille_1
+        grille = grille_2
 
     #affichage dans la console des 10 lignes de la matrice
-    for index in range(10) :
-        print(grille[index])
+    for ligne in grille :
+        print(ligne)
     print("")
 
 def direction(event):
@@ -107,6 +126,7 @@ def coordonnees(event) :
     Pas de paramètre en entrée ou sortie.
     """
     global saisie
+    global opposant
 
     if saisie :
         if saisie : # vérifie si la saisie est activée
@@ -114,12 +134,15 @@ def coordonnees(event) :
             li = (event.y-100) // 60 #détermination de la ligne avec une division euclidienne des coordonnées horizontales par la taille des cases en prenant en compte la marge de 100 pixels pour la ligne
 
             if li >= 0 : #verification que le clic est dans la grille et non la marge en haut
-                placement(li, col)
+                if opposant == 0 :
+                    placement_joueurs(li, col)
+                else :
+                    placement_ia(li, col)
 
             else :  #message d'erreur si hors de la grille
                 dessin_message("Clic en dehors de la grille")
 
-def placement(li, col) :
+def placement_joueurs(li, col) :
     """
     Fonction de placement, gère le positionnement des bateaux tant que la phase de placement est active puis le bombardage sur la grille ennemie
 
@@ -129,6 +152,7 @@ def placement(li, col) :
     global placement1_fini
     global placement_en_cour
     global horizontal
+    global saisie
 
     dessin_message("")
     noms_bateaux = ["Torpilleur (2 cases)", "Sous-marin (3 cases)", "Contre torpilleur (3 cases)", "Croiseur (4 cases)", "Porte-avions (5 cases)"]
@@ -185,20 +209,24 @@ def placement(li, col) :
             tour_joueur_1 = False
             placement1_fini = True
             dessin_message("Placement des bateaux du joueur 1 fini")
+            saisie = False
             time.sleep(0.7)
             dessin_message("")
             dessin_grille()
             dessin_tour(tour_joueur_1)
             dessin_message("Veuillez placer le Porte-avions (5 cases)")
+            saisie = True
         if not bateaux2 :
             tour_joueur_1 = True
             placement_en_cour = False
             dessin_message("Placement des bateaux du joueur 2 fini")
+            saisie = False
             time.sleep(0.7)
             dessin_message("")
             dessin_grille()
             dessin_tour(tour_joueur_1)
             dessin_message("Veillez choisir une case à bombarder.")
+            saisie = True
 
     else : #phase de bombaradage des bateaux
 
@@ -210,15 +238,16 @@ def placement(li, col) :
 
         #vérification de l'etat de la case et assignage de son nouvel état après bombardement
         if grille[li][col] == 0 : #bombardement raté si la case est vide
+            saisie = False
             grille[li][col] = 6
             dessin_bombe(li, col, False)
             dessin_message("Coulé...")
-
             time.sleep(0.5)
             tour_joueur_1 = not tour_joueur_1
             dessin_tour(tour_joueur_1)
             dessin_autre_joueur()
             dessin_message("Veillez choisir une case à bombarder.")
+            saisie = True
 
         elif grille[li][col] == 6 or grille[li][col] == 7 : #message d'erreur si la case à déjà été bombardée
             dessin_message("Vous avez déja bombardé cette case")
@@ -243,6 +272,278 @@ def placement(li, col) :
                         bateaux_coulé = False
                 if bateaux_coulé : #si plus de bateaux : victoire
                     victoire(tour_joueur_1)
+
+def placement_ia(li, col) :
+    global tour_joueur_1
+    global placement1_fini
+    global placement_en_cour
+    global horizontal
+    global saisie
+    global mode_chasse
+    global coord_bateau_touché
+    global direction_IA
+
+    dessin_message("")
+    noms_bateaux = ["Torpilleur (2 cases)", "Sous-marin (3 cases)", "Contre torpilleur (3 cases)", "Croiseur (4 cases)", "Porte-avions (5 cases)"]
+
+    #phase de placement initial des bateaux
+    if placement_en_cour :
+
+        #assignage des variables en fonction du tour du joueur
+        if horizontal : #si le placment est horizontal
+            if (bateaux1[0] + col) <= 10 : #vérification que le bateau ne dépasse pas de la grille horizontalement
+                champs_libre = True
+
+                for index in range(0, bateaux1[0]) : #vérification qu'un autre bateau ne bloque pas celui qu'on place, je sais que c'est pas beau mais c'est la meilleure idée que j'ai...
+                        if grille_1[li][col + index] != 0 :
+                            champs_libre = False
+
+                if champs_libre : #placement du bateau sans oublier de le retirer de la liste des bateaux a placer
+                    for index in range(0, bateaux1[0]) :
+                        grille_1[li][col + index] = len(bateaux1) 
+                    dessin_bateaux(li,col, True, bateaux1.pop(0))
+
+                    dessin_message("Veuillez placer le " + noms_bateaux[len(bateaux1)-1])
+
+                else :
+                    dessin_message("Le bateau est bloqué par un autre bateau déjà placé !")
+            else :
+                dessin_message("Le bateau dépasse de la grille !")
+
+        else : #si le placment est vertical
+            if (bateaux1[0] + li) <= 10 : #vérification que le bateau ne dépasse pas de la grille verticalement
+                champs_libre = True
+
+                for index in range(0, bateaux1[0]) : #vérification qu'un autre bateau ne bloque pas celui qu'on place, je sais que c'est pas beau mais c'est la meilleure idée que j'ai...
+                        if grille_1[li + index][col] != 0 :
+                            champs_libre = False
+
+                if champs_libre : #placement du bateau sans oublier de le retirer de la liste des bateaux a placer
+                    for index in range(0, bateaux1[0]) :
+                        grille_1[li + index][col] = len(bateaux1) 
+                    dessin_bateaux(li,col, False, bateaux1.pop(0))
+                else :
+                    dessin_message("Le bateau est bloqué par un autre bateau déjà placé !")
+            else :
+                dessin_message("Le bateau dépasse de la grille !")
+                
+        if not bateaux1 and not placement1_fini: #changement de tour si les bateaux du joueur 1 sont placé et passage a la phase suivante si c'est l cas des bateaux du joueur 2
+            tour_joueur_1 = False
+            placement1_fini = True
+            dessin_message("Placement des bateaux du joueur 1 fini")
+            saisie = False
+            time.sleep(0.7)
+            saisie = True
+            dessin_message("")
+            dessin_grille()
+
+            while bateaux2 :
+                li = random.randint(0, 9)
+                col = random.randint(0, 9)
+                hor = random.randint(0, 1) 
+                if hor == 0 :
+                    hor = True
+                else :
+                    hor = False
+                if hor : #si le placment est horizontal
+                    if (bateaux2[0] + col) <= 10 : #vérification que le bateau ne dépasse pas de la grille horizontalement
+                        champs_libre = True
+
+                        for index in range(0, bateaux2[0]) : #vérification qu'un autre bateau ne bloque pas celui qu'on place, je sais que c'est pas beau mais c'est la meilleure idée que j'ai...
+                                if grille_2[li][col + index] != 0 :
+                                    champs_libre = False
+
+                        if champs_libre : #placement du bateau sans oublier de le retirer de la liste des bateaux a placer
+                            for index in range(0, bateaux2[0]) :
+                                grille_2[li][col + index] = len(bateaux2) 
+                            bateaux2.pop(0)
+                else : #si le placment est vertical
+                    if (bateaux2[0] + li) <= 10 : #vérification que le bateau ne dépasse pas de la grille verticalement
+                        champs_libre = True
+
+                        for index in range(0, bateaux2[0]) : #vérification qu'un autre bateau ne bloque pas celui qu'on place, je sais que c'est pas beau mais c'est la meilleure idée que j'ai...
+                                if grille_2[li + index][col] != 0 :
+                                    champs_libre = False
+
+                        if champs_libre : #placement du bateau sans oublier de le retirer de la liste des bateaux a placer
+                            for index in range(0, bateaux2[0]) :
+                                grille_2[li + index][col] = len(bateaux2) 
+                            bateaux2.pop(0)
+
+        if not bateaux2 :
+            saisie = False
+            tour_joueur_1 = True
+            placement_en_cour = False
+            dessin_grille()
+            dessin_message("Veillez choisir une case à bombarder.")
+            saisie = True
+
+    else : #phase de bombardage
+
+        #vérification de l'etat de la case et assignage de son nouvel état après bombardement
+        if grille_2[li][col] == 0 : #bombardement raté si la case est vide
+            saisie = False
+            grille_2[li][col] = 6
+            dessin_bombe(li, col, False)
+            dessin_message("Coulé...")
+            time.sleep(0.5)
+            tour_joueur_1 = False
+            dessin_tour(tour_joueur_1)
+            dessin_autre_joueur()
+
+            if opposant == 1 : #IA mode facile
+                IA_facile(noms_bateaux)
+                        
+            else : #IA mode difficile
+                coulé = False
+                while not coulé :
+                    if not mode_chasse :
+                        coulé = AI_difficile_placage_semi_random(grille_1)
+                    else :
+                        li, col = coord_bateau_touché
+                        directions_ciblage = [(li, col-1), (li, col+1), (li-1, col), (li+1, col)]
+                        coulé = False
+
+                        while not coulé:
+                            li, col = directions_ciblage[direction_IA]
+                            if 0 <= li < 10 and 0 <= col < 10:  # Vérification des limites de la grille
+
+                                if grille_1[li][col] == 6 :
+                                    direction_IA += 1
+                                    if direction_IA == 4:
+                                        direction_IA = 0
+                                        mode_chasse = False
+                                        coulé = True
+                                        AI_difficile_placage_semi_random(grille_1)
+
+                                elif grille_1[li][col] == 0:
+                                    time.sleep(0.5)
+                                    grille_1[li][col] = 6
+                                    coulé = True
+                                    dessin_message("L'IA a raté...")
+                                    dessin_bombe(li, col, False)
+                                    time.sleep(1)
+                                    direction_IA += 1
+                                    if direction_IA == 4:
+                                        direction_IA = 0
+                                        mode_chasse = False
+
+                                else:
+                                    time.sleep(0.5)
+                                    grille_1[li][col] = 7
+                                    dessin_message("L'IA a touché un bateau !")
+                                    dessin_bombe(li, col, True)
+                                    time.sleep(1)
+                                    # Mettre à jour directions_ciblage avec de nouvelles coordonnées dans la même direction
+                                    if direction_IA == 0:
+                                        directions_ciblage[direction_IA] = (li, col-1)
+                                    elif direction_IA == 1:
+                                        directions_ciblage[direction_IA] = (li, col+1)
+                                    elif direction_IA == 2:
+                                        directions_ciblage[direction_IA] = (li-1, col)
+                                    elif direction_IA == 3:
+                                        directions_ciblage[direction_IA] = (li+1, col)
+                            else:
+                                direction_IA += 1
+                                if direction_IA == 4:
+                                    direction_IA = 0
+                                    mode_chasse = False  # Désactiver le mode chasse si toutes les directions ont été essayées
+                                    coulé = True
+                                    AI_difficile_placage_semi_random(grille_1)
+
+            tour_joueur_1 = True
+            dessin_tour(tour_joueur_1)
+            dessin_autre_joueur()
+            saisie = True
+
+
+        elif grille_2[li][col] == 6 or grille_2[li][col] == 7 : #message d'erreur si la case à déjà été bombardée
+            dessin_message("Vous avez déja bombardé cette case")
+
+        else : #bombardement touché car dernier cas possible : case occupée par bateau
+            bateau_touché =  grille_2[li][col]
+            grille_2[li][col] = 7
+            dessin_bombe(li, col, True)
+
+            bateau_en_vie = False
+            for li in range(len(grille_2)) : #parcour la matrice et vérifie si le bateau touché a entièrement coulé
+                if bateau_touché in grille_2[li] :
+                    bateau_en_vie = True
+
+            if bateau_en_vie :
+                dessin_message("Touché !")
+            else :
+                dessin_message("Le " + noms_bateaux[bateau_touché - 1] +" a Coulé !")
+                bateaux_coulé = True
+                for li in range(len(grille_2)) : #parcour la matrice et vérifie si il reste au moins un bateau
+                    if any(cell in grille_2[li] for cell in [1, 2, 3, 4, 5]) :
+                        bateaux_coulé = False
+                if bateaux_coulé : #si plus de bateaux : victoire
+                    victoire(tour_joueur_1)
+
+def IA_facile(noms_bateaux) :
+    global grille_1
+
+    coulé = False
+    while not coulé : #tant qu'aucun tir n'a manqué, continuer de jouer
+        li = random.randint(0, 9)
+        col = random.randint(0, 9)
+
+        if grille_1[li][col] == 0 :
+            time.sleep(0.5)
+            grille_1[li][col] = 6
+            coulé = True
+            dessin_message("L'IA a raté...")
+            dessin_bombe(li, col, False)
+            time.sleep(1)
+
+        elif grille_1[li][col] in [1, 2, 3, 4, 5]:
+            bateau_touché = grille_1[li][col]
+            grille_1[li][col] = 7
+            bateau_en_vie = False
+
+            for ligne in range(len(grille_1)) : #parcour la matrice et vérifie si le bateau touché a entièrement coulé
+                if bateau_touché in grille_1[ligne] :
+                    bateau_en_vie = True
+
+            if bateau_en_vie :
+                time.sleep(0.5)
+                dessin_message("L'IA a touché un bateau !")
+                dessin_bombe(li, col, True)
+                time.sleep(0.75)
+            else :
+                dessin_message("Le " + noms_bateaux[bateau_touché - 1] +" a Coulé !")
+                bateaux_coulé = True
+                for li in range(len(grille_1)) : #parcour la matrice et vérifie si il reste au moins un bateau
+                    if any(cell in grille_1[li] for cell in [1, 2, 3, 4, 5]) :
+                        bateaux_coulé = False
+                if bateaux_coulé : #si plus de bateaux : victoire
+                    victoire(False)
+
+def AI_difficile_placage_semi_random(grille) :
+    global mode_chasse
+    global coord_bateau_touché
+
+    li = random.randint(0, 9)
+    col = random.randint(0, 9)
+
+    if (li + col) % 2 == 1 : #on ne cible que les cases impaires 
+    
+        if grille[li][col] == 0 :
+            time.sleep(0.5)
+            grille[li][col] = 6
+            dessin_message("L'IA a raté...")
+            dessin_bombe(li, col, False)
+            time.sleep(1)
+            return True
+        elif grille[li][col] in [1, 2, 3, 4, 5]:
+            time.sleep(0.5)
+            grille[li][col] = 7
+            mode_chasse = True
+            coord_bateau_touché = (li, col)
+            dessin_message("L'IA a touché un bateau !")
+            dessin_bombe(li, col, True)
+            time.sleep(1)
 
 def victoire(tour_joueur1) :
     global saisie
