@@ -1,4 +1,4 @@
-# BATAILLE NAVALE 1.0
+# BATAILLE NAVALE 1.1
 
 ## Notes :
 >Les commits initiaux présente un autre compte que l'actuel, 
