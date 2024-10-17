@@ -42,22 +42,32 @@ def initialisation() :
 
 def activation_ia_facile() :
     global opposant
-    if opposant == 1 :
-        opposant = 0
-        dessin_message("IA désactivée")
+    global tour_joueur_1
+
+    if tour_joueur_1 :
+        if opposant == 1 :
+            opposant = 0
+            dessin_message("IA désactivée")
+        else :
+            opposant = 1
+            dessin_message("IA mode facile activé")
     else :
-        opposant = 1
-        dessin_message("IA mode facile activé")
+        dessin_message("Impossible de changer l'opposant lors de son tour")
 
 def activation_ia_difficile() :
     global opposant
-    if opposant == 2 :
-        opposant = 0
-        dessin_message("IA désactivée")
+    global tour_joueur_1
 
+    if tour_joueur_1 :
+        if opposant == 2 :
+            opposant = 0
+            dessin_message("IA désactivée")
+
+        else :
+            opposant = 2
+            dessin_message("IA mode difficile activé")
     else :
-        opposant = 2
-        dessin_message("IA mode difficile activé")
+        dessin_message("Impossible de changer l'opposant lors de son tour")
 
 def affichage_grille() :
     """
@@ -134,6 +144,7 @@ def placement_joueurs(li, col) :
     global placement1_fini
     global placement_en_cour
     global horizontal
+    global saisie
 
     dessin_message("")
     noms_bateaux = ["Torpilleur (2 cases)", "Sous-marin (3 cases)", "Contre torpilleur (3 cases)", "Croiseur (4 cases)", "Porte-avions (5 cases)"]
@@ -190,20 +201,24 @@ def placement_joueurs(li, col) :
             tour_joueur_1 = False
             placement1_fini = True
             dessin_message("Placement des bateaux du joueur 1 fini")
+            saisie = False
             time.sleep(0.7)
             dessin_message("")
             dessin_grille()
             dessin_tour(tour_joueur_1)
             dessin_message("Veuillez placer le Porte-avions (5 cases)")
+            saisie = True
         if not bateaux2 :
             tour_joueur_1 = True
             placement_en_cour = False
             dessin_message("Placement des bateaux du joueur 2 fini")
+            saisie = False
             time.sleep(0.7)
             dessin_message("")
             dessin_grille()
             dessin_tour(tour_joueur_1)
             dessin_message("Veillez choisir une case à bombarder.")
+            saisie = True
 
     else : #phase de bombaradage des bateaux
 
@@ -215,15 +230,16 @@ def placement_joueurs(li, col) :
 
         #vérification de l'etat de la case et assignage de son nouvel état après bombardement
         if grille[li][col] == 0 : #bombardement raté si la case est vide
+            saisie = False
             grille[li][col] = 6
             dessin_bombe(li, col, False)
             dessin_message("Coulé...")
-
             time.sleep(0.5)
             tour_joueur_1 = not tour_joueur_1
             dessin_tour(tour_joueur_1)
             dessin_autre_joueur()
             dessin_message("Veillez choisir une case à bombarder.")
+            saisie = True
 
         elif grille[li][col] == 6 or grille[li][col] == 7 : #message d'erreur si la case à déjà été bombardée
             dessin_message("Vous avez déja bombardé cette case")
@@ -254,6 +270,7 @@ def placement_ia(li, col) :
     global placement1_fini
     global placement_en_cour
     global horizontal
+    global saisie
 
     dessin_message("")
     noms_bateaux = ["Torpilleur (2 cases)", "Sous-marin (3 cases)", "Contre torpilleur (3 cases)", "Croiseur (4 cases)", "Porte-avions (5 cases)"]
@@ -303,19 +320,21 @@ def placement_ia(li, col) :
             tour_joueur_1 = False
             placement1_fini = True
             dessin_message("Placement des bateaux du joueur 1 fini")
+            saisie = False
             time.sleep(0.7)
+            saisie = True
             dessin_message("")
             dessin_grille()
 
             while bateaux2 :
                 li = random.randint(0, 9)
                 col = random.randint(0, 9)
-                vert = random.randint(0, 1) 
-                if vert == 0 :
-                    vert = True
+                hor = random.randint(0, 1) 
+                if hor == 0 :
+                    hor = True
                 else :
-                    vert = False
-                if horizontal : #si le placment est horizontal
+                    hor = False
+                if hor : #si le placment est horizontal
                     if (bateaux2[0] + col) <= 10 : #vérification que le bateau ne dépasse pas de la grille horizontalement
                         champs_libre = True
 
@@ -343,22 +362,20 @@ def placement_ia(li, col) :
             affichage_grille()
 
         if not bateaux2 :
+            saisie = False
             tour_joueur_1 = True
             placement_en_cour = False
-            dessin_message("Placement des bateaux de l'IA fini")
-            time.sleep(0.7)
-            dessin_message("")
             dessin_grille()
-            dessin_tour(tour_joueur_1)
             dessin_message("Veillez choisir une case à bombarder.")
+            saisie = True
 
     else :
         #vérification de l'etat de la case et assignage de son nouvel état après bombardement
         if grille_2[li][col] == 0 : #bombardement raté si la case est vide
+            saisie = False
             grille_2[li][col] = 6
             dessin_bombe(li, col, False)
             dessin_message("Coulé...")
-
             time.sleep(0.5)
             tour_joueur_1 = False
             dessin_tour(tour_joueur_1)
@@ -367,24 +384,50 @@ def placement_ia(li, col) :
             li = -1
             col = -1
             coulé = False
-            while not coulé :
-                li = random.randint(0, 9)
-                col = random.randint(0, 9)
-                if grille_1[li][col] == 0 :
-                    grille_1[li][col] = 6
-                    coulé = True
-                    time.sleep(0.3)
-                    dessin_bombe(li, col, False)
-                    time.sleep(0.8)
-                elif any(cell in grille_1[li] for cell in [1, 2, 3, 4, 5]):
-                    grille_1[li][col] = 7
-                    time.sleep(0.3)
-                    dessin_bombe(li, col, True)
-                    time.sleep(0.5)
+
+            if opposant == 1 :
+                while not coulé :
+                    li = random.randint(0, 9)
+                    col = random.randint(0, 9)
+                    if grille_1[li][col] == 0 :
+                        grille_1[li][col] = 6
+                        coulé = True
+                        time.sleep(0.5)
+                        dessin_message("L'IA a raté...")
+                        dessin_bombe(li, col, False)
+                        time.sleep(1)
+                    elif grille_1[li][col] in [1, 2, 3, 4, 5]:
+                        bateau_touché = grille_1[li][col]
+                        grille_1[li][col] = 7
+                        bateau_en_vie = False
+
+                        for ligne in range(len(grille_1)) : #parcour la matrice et vérifie si le bateau touché a entièrement coulé
+                            if bateau_touché in grille_1[ligne] :
+                                bateau_en_vie = True
+
+                        if bateau_en_vie :
+                            time.sleep(0.5)
+                            dessin_message("L'IA a touché !")
+                            print(li, col)
+                            dessin_bombe(li, col, True)
+                            time.sleep(0.75)
+                        else :
+                            dessin_message("Le " + noms_bateaux[bateau_touché - 1] +" a Coulé !")
+                            bateaux_coulé = True
+                            for li in range(len(grille_1)) : #parcour la matrice et vérifie si il reste au moins un bateau
+                                if any(cell in grille_1[li] for cell in [1, 2, 3, 4, 5]) :
+                                    bateaux_coulé = False
+                            if bateaux_coulé : #si plus de bateaux : victoire
+                                victoire(tour_joueur_1)
+
+                        
+            else :
+                print("test lol")
 
             tour_joueur_1 = True
             dessin_tour(tour_joueur_1)
             dessin_autre_joueur()
+            saisie = True
 
 
         elif grille_2[li][col] == 6 or grille_2[li][col] == 7 : #message d'erreur si la case à déjà été bombardée
@@ -410,7 +453,6 @@ def placement_ia(li, col) :
                         bateaux_coulé = False
                 if bateaux_coulé : #si plus de bateaux : victoire
                     victoire(tour_joueur_1)
-
 
 def victoire(tour_joueur1) :
     global saisie
