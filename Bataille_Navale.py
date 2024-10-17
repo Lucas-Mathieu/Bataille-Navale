@@ -762,6 +762,40 @@ def sauvegarde() :
     else : 
         dessin_message("Vous devez placer les bateaux pour pouvoir sauvegarder.")
 
+def chargement():
+    """ 
+    Charge les données de la partie à partir du fichier texte.
+    """
+    global grille_1, grille_2, tour_joueur_1, placement_en_cour
+    global bateaux1, bateaux2, horizontal, placement1_fini, saisie, opposant
+    global mode_chasse, coord_bateau_touché, direction_IA
+
+    # Obtenir le répertoire courant
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    fichier = os.path.join(current_directory, "sauvegarde.txt")
+
+    # Chargement de toutes les variables globales
+    if os.path.exists(fichier):
+        with open(fichier, 'r') as f:
+            lines = f.readlines()
+            grille_1 = eval(lines[0].split(": ")[1].strip())
+            grille_2 = eval(lines[1].split(": ")[1].strip())
+            tour_joueur_1 = eval(lines[2].split(": ")[1].strip())
+            placement_en_cour = eval(lines[3].split(": ")[1].strip())
+            bateaux1 = eval(lines[4].split(": ")[1].strip())
+            bateaux2 = eval(lines[5].split(": ")[1].strip())
+            horizontal = eval(lines[6].split(": ")[1].strip())
+            placement1_fini = eval(lines[7].split(": ")[1].strip())
+            saisie = eval(lines[8].split(": ")[1].strip())
+            opposant = eval(lines[9].split(": ")[1].strip())
+            mode_chasse = eval(lines[10].split(": ")[1].strip())
+            coord_bateau_touché = eval(lines[11].split(": ")[1].strip())
+            direction_IA = eval(lines[12].split(": ")[1].strip())
+        dessin_tour(tour_joueur_1)
+        dessin_autre_joueur()
+        dessin_message("Veillez choisir une case à bombarder.")
+    else:
+        dessin_message("Aucune sauvegarde trouvée.")
 
 """================PROGRAMME PRINCIPAL================"""
 
@@ -781,6 +815,9 @@ slection_ia_dificile.place(x=5, y=35)
 
 sauvegarder=Button(fen, text="Sauvegarder",command=sauvegarde)
 sauvegarder.place(x=527, y=5)
+
+charger=Button(fen, text="Charger",command=chargement)
+charger.place(x=527, y=35)
 
 initialisation()
 dessin_grille()
