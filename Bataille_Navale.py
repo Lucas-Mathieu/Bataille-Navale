@@ -735,8 +735,8 @@ def sauvegarde() :
     """
     Sauvegarde les données de la partie dans un fichier texte..
     """
-    global grille_1, grille_2, tour_joueur_1, placement_en_cour
-    global bateaux1, bateaux2, horizontal, placement1_fini, saisie, opposant
+    global grille_1, grille_2, tour_joueur_1
+    global bateaux1, bateaux2, horizontal, saisie, opposant
     global mode_chasse, coord_bateau_touché, direction_IA
 
     # Obtenir le répertoire courant
@@ -749,11 +749,7 @@ def sauvegarde() :
             f.write(f"grille_1: {grille_1}\n")
             f.write(f"grille_2: {grille_2}\n")
             f.write(f"tour_joueur_1: {tour_joueur_1}\n")
-            f.write(f"placement_en_cour: {placement_en_cour}\n")
-            f.write(f"bateaux1: {bateaux1}\n")
-            f.write(f"bateaux2: {bateaux2}\n")
             f.write(f"horizontal: {horizontal}\n")
-            f.write(f"placement1_fini: {placement1_fini}\n")
             f.write(f"saisie: {saisie}\n")
             f.write(f"opposant: {opposant}\n")
             f.write(f"mode_chasse: {mode_chasse}\n")
@@ -767,7 +763,7 @@ def chargement():
     Charge les données de la partie à partir du fichier texte.
     """
     global grille_1, grille_2, tour_joueur_1, placement_en_cour
-    global bateaux1, bateaux2, horizontal, placement1_fini, saisie, opposant
+    global bateaux1, bateaux2, horizontal, saisie, opposant
     global mode_chasse, coord_bateau_touché, direction_IA
 
     # Obtenir le répertoire courant
@@ -781,11 +777,8 @@ def chargement():
             grille_1 = eval(lines[0].split(": ")[1].strip())
             grille_2 = eval(lines[1].split(": ")[1].strip())
             tour_joueur_1 = eval(lines[2].split(": ")[1].strip())
-            placement_en_cour = eval(lines[3].split(": ")[1].strip())
-            bateaux1 = eval(lines[4].split(": ")[1].strip())
-            bateaux2 = eval(lines[5].split(": ")[1].strip())
+            placement_en_cour = False
             horizontal = eval(lines[6].split(": ")[1].strip())
-            placement1_fini = eval(lines[7].split(": ")[1].strip())
             saisie = eval(lines[8].split(": ")[1].strip())
             opposant = eval(lines[9].split(": ")[1].strip())
             mode_chasse = eval(lines[10].split(": ")[1].strip())
