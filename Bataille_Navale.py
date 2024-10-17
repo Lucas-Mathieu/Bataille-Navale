@@ -13,6 +13,7 @@ def initialisation() :
     horizontal : Boolean indiquant si le bateau que l'on souhaite placer est horizontal ou vertical
     placement1_fini : Boolean indiquant si le joueur 1 a finis de placer ses bateaux 
     saisie : Boolean indiquant au fonctions associés aux clics de la souris si elle peuvent fonctionner
+    opposant : int définissant l'opposant : 0 = joueur, 1 : IA facile, 2 : IA difficile
     """
     global grille_1 
     global grille_2
@@ -24,6 +25,7 @@ def initialisation() :
     global horizontal
     global placement1_fini
     global saisie
+    global opposant
 
     grille_1 = [[0] * 10 for x in range(10)]
     grille_2 = [[0] * 10 for x in range(10)]
@@ -35,30 +37,26 @@ def initialisation() :
     horizontal = True
     placement1_fini = False
     saisie = True
+    opposant = 0
 
-def dessin_grille() :
-    """
-    Dessin des lignes verticales et horizontale de la grille dans la fenêtre de jeu à l'aide de tkinter.
+def activation_ia_facile() :
+    global opposant
+    if opposant == 1 :
+        opposant = 0
+        dessin_message("IA désactivée")
+    else :
+        opposant = 1
+        dessin_message("IA mode facile activé")
 
-    Pas de paramètre d'entrée ou de sortie.
-    """
-    #remplissage du fond en gris
-    Zone.create_rectangle (0, 100, 606, 702, fill="grey", outline="grey")
-    # dessin des lignes verticales
-    écart = 4
-    for x in range(11):
-        haut = 100
-        bas = 700
-        Zone.create_line (écart, haut, écart, bas, width=4, fill="blue")
-        écart += 60
+def activation_ia_difficile() :
+    global opposant
+    if opposant == 2 :
+        opposant = 0
+        dessin_message("IA désactivée")
 
-    # dessin des lignes horizontales
-    écart = 100
-    for x in range(11):
-        gauche = 0
-        droite = 700
-        Zone.create_line (gauche , écart , droite , écart ,width=4,fill="blue")
-        écart += 60
+    else :
+        opposant = 2
+        dessin_message("IA mode difficile activé")
 
 def affichage_grille() :
     """
@@ -90,7 +88,7 @@ def direction(event):
     """
     Change la direction de placement du bateau en vertical ou horizontal en fonction de l'inverse du boolean associé a cet aspect is la saisie est activée
 
-    Pas de paramètres d'entrée ou de sortie
+    Pas de paramètres d'entrée (sauf event imposé par tkinter pour les appels de fonction lié a des touches malgrès qu'il ne soit pas utilisé) ou de sortie
     """
     global horizontal
     global saisie
@@ -98,9 +96,9 @@ def direction(event):
     if saisie : # vérifie si la saisie est activée
         horizontal = not horizontal
         if horizontal :
-            print("Horizontal")
+            dessin_message("Placement horizontal")
         else :
-            print("vertical")
+            dessin_message("Placement vertical")
 
 def coordonnees(event) :
     """
@@ -133,6 +131,7 @@ def placement(li, col) :
     global horizontal
 
     dessin_message("")
+    noms_bateaux = ["Torpilleur (2 cases)", "Sous-marin (3 cases)", "Contre torpilleur (3 cases)", "Croiseur (4 cases)", "Porte-avions (5 cases)"]
 
     #phase de placement initial des bateaux
     if placement_en_cour :
@@ -149,16 +148,17 @@ def placement(li, col) :
             if (bateaux[0] + col) <= 10 : #vérification que le bateau ne dépasse pas de la grille horizontalement
                 champs_libre = True
 
-                #vérification qu'un autre bateau ne bloque pas celui qu'on place, je sais que c'est pas beau mais c'est la meilleure idée que j'ai...
-                for index in range(0, bateaux[0]) :
+                for index in range(0, bateaux[0]) : #vérification qu'un autre bateau ne bloque pas celui qu'on place, je sais que c'est pas beau mais c'est la meilleure idée que j'ai...
                         if grille[li][col + index] != 0 :
                             champs_libre = False
-                if champs_libre :
 
-                    #placement du bateau sans oublier de le retirer de la liste des bateaux a placer
+                if champs_libre : #placement du bateau sans oublier de le retirer de la liste des bateaux a placer
                     for index in range(0, bateaux[0]) :
                         grille[li][col + index] = len(bateaux) 
-                    dessin_bateaux(li,col, True, bateaux.pop(0)) 
+                    dessin_bateaux(li,col, True, bateaux.pop(0))
+
+                    dessin_message("Veuillez placer le " + noms_bateaux[len(bateaux)-1])
+
                 else :
                     dessin_message("Le bateau est bloqué par un autre bateau déjà placé !")
             else :
@@ -168,12 +168,11 @@ def placement(li, col) :
             if (bateaux[0] + li) <= 10 : #vérification que le bateau ne dépasse pas de la grille verticalement
                 champs_libre = True
 
-                #vérification qu'un autre bateau ne bloque pas celui qu'on place, je sais que c'est pas beau mais c'est la meilleure idée que j'ai...
-                for index in range(0, bateaux[0]) :
+                for index in range(0, bateaux[0]) : #vérification qu'un autre bateau ne bloque pas celui qu'on place, je sais que c'est pas beau mais c'est la meilleure idée que j'ai...
                         if grille[li + index][col] != 0 :
                             champs_libre = False
-                if champs_libre :
-                    #placement du bateau sans oublier de le retirer de la liste des bateaux a placer
+
+                if champs_libre : #placement du bateau sans oublier de le retirer de la liste des bateaux a placer
                     for index in range(0, bateaux[0]) :
                         grille[li + index][col] = len(bateaux) 
                     dessin_bateaux(li,col, False, bateaux.pop(0))
@@ -182,17 +181,24 @@ def placement(li, col) :
             else :
                 dessin_message("Le bateau dépasse de la grille !")
 
-        #changement de tour si les bateaux du joueur 1 sont placé et passage a la phase suivante si c'est l cas des bateaux du joueur 2
-        if not bateaux1 and not placement1_fini:
+        if not bateaux1 and not placement1_fini: #changement de tour si les bateaux du joueur 1 sont placé et passage a la phase suivante si c'est l cas des bateaux du joueur 2
             tour_joueur_1 = False
             placement1_fini = True
+            dessin_message("Placement des bateaux du joueur 1 fini")
+            time.sleep(0.7)
+            dessin_message("")
             dessin_grille()
             dessin_tour(tour_joueur_1)
+            dessin_message("Veuillez placer le Porte-avions (5 cases)")
         if not bateaux2 :
             tour_joueur_1 = True
             placement_en_cour = False
+            dessin_message("Placement des bateaux du joueur 2 fini")
+            time.sleep(0.7)
+            dessin_message("")
             dessin_grille()
             dessin_tour(tour_joueur_1)
+            dessin_message("Veillez choisir une case à bombarder.")
 
     else : #phase de bombaradage des bateaux
 
@@ -212,21 +218,66 @@ def placement(li, col) :
             tour_joueur_1 = not tour_joueur_1
             dessin_tour(tour_joueur_1)
             dessin_autre_joueur()
+            dessin_message("Veillez choisir une case à bombarder.")
 
         elif grille[li][col] == 6 or grille[li][col] == 7 : #message d'erreur si la case à déjà été bombardée
             dessin_message("Vous avez déja bombardé cette case")
 
         else : #bombardement touché car dernier cas possible : case occupée par bateau
+            bateau_touché =  grille[li][col]
             grille[li][col] = 7
             dessin_bombe(li, col, True)
-            dessin_message("Touché !")
 
-            bateaux_coulé = True
-            for li in range(len(grille)) :
-                if 1 in grille[li] or 2 in grille[li] or 3 in grille[li] or 4 in grille[li] or 5 in grille[li] :
-                    bateaux_coulé = False
-            if bateaux_coulé :
-                victoire(tour_joueur_1)
+            bateau_en_vie = False
+            for li in range(len(grille)) : #parcour la matrice et vérifie si le bateau touché a entièrement coulé
+                if bateau_touché in grille[li] :
+                    bateau_en_vie = True
+
+            if bateau_en_vie :
+                dessin_message("Touché !")
+            else :
+                dessin_message("Le " + noms_bateaux[bateau_touché - 1] +" a Coulé !")
+                bateaux_coulé = True
+                for li in range(len(grille)) : #parcour la matrice et vérifie si il reste au moins un bateau
+                    if any(cell in grille[li] for cell in [1, 2, 3, 4, 5]) :
+                        bateaux_coulé = False
+                if bateaux_coulé : #si plus de bateaux : victoire
+                    victoire(tour_joueur_1)
+
+def victoire(tour_joueur1) :
+    global saisie
+
+    if tour_joueur1 :
+        gagnant = "Joueur 1"
+    else :
+        gagnant = "Joueur 2"
+
+    dessin_message("Le " + gagnant + " a gagné la partie !")
+    saisie = False
+
+def dessin_grille() :
+    """
+    Dessin des lignes verticales et horizontale de la grille dans la fenêtre de jeu à l'aide de tkinter.
+
+    Pas de paramètre d'entrée ou de sortie.
+    """
+    #remplissage du fond en gris
+    Zone.create_rectangle (0, 100, 606, 702, fill="grey", outline="grey")
+    # dessin des lignes verticales
+    écart = 4
+    for x in range(11):
+        haut = 100
+        bas = 700
+        Zone.create_line (écart, haut, écart, bas, width=4, fill="blue")
+        écart += 60
+
+    # dessin des lignes horizontales
+    écart = 100
+    for x in range(11):
+        gauche = 0
+        droite = 700
+        Zone.create_line (gauche , écart , droite , écart ,width=4,fill="blue")
+        écart += 60
 
 def dessin_tour(joueur1) :
     if joueur1 :
@@ -285,30 +336,25 @@ def dessin_bombe(li, col, touche) :
         Zone.create_oval(col*60 + 6 , li*60 + 102, col*60 + 61, li*60 + 157, width=2 ,outline="black",fill="white")
     Zone.update ()
 
-def victoire(tour_joueur1) :
-    global saisie
-
-    if tour_joueur1 :
-        gagnant = "Joueur 1"
-    else :
-        gagnant = "Joueur 2"
-
-    dessin_message("Le " + gagnant + " a gagné la partie !")
-    saisie = False
-
 """================PROGRAMME PRINCIPAL================"""
 
-fen=Tk()
-fen.geometry ("606x702")
-fen.title ("Bataille Navale")
+fen=Tk() #initialisation de la méthode Tkinter avec l'objet fen
+fen.geometry ("606x702") #dimensions de la fenêtre de l'interface graphique
+fen.title ("Bataille Navale") #nom de la fenêtre de l'interface graphique
 fen.bind('<Button-1>',coordonnees) #assignage de la fontion coordonnees au clic gauche
 fen.bind('<Button-3>',direction) #assignage de la fonction direction au clic droit
 Zone=Canvas(fen,width=606,height=702,bg="grey") #création du fond gris servant de référentiel pour les coordonnées
 Zone.place(x=0,y=0) #initialisation du référentiel pour les coordonnées
 
+slection_ia_facile=Button(fen, text="IA Facile",command=activation_ia_facile)
+slection_ia_facile.place(x=5, y=5)
+
+slection_ia_dificile=Button(fen, text="IA Difficile",command=activation_ia_difficile)
+slection_ia_dificile.place(x=5, y=35)
+
 initialisation()
 dessin_grille()
 dessin_tour("Joueur 1")
-
+dessin_message("Veuillez placer le Porte-avions (5 cases)")
 
 fen.mainloop()
