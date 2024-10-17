@@ -1,5 +1,6 @@
 from tkinter import *
 import time
+import random
 
 def initialisation() :
     """
@@ -77,11 +78,11 @@ def affichage_grille() :
     if tour_joueur_1 :
         grille = grille_2
     else :
-        grille = grille_1
+        grille = grille_2
 
     #affichage dans la console des 10 lignes de la matrice
-    for index in range(10) :
-        print(grille[index])
+    for ligne in grille :
+        print(ligne)
     print("")
 
 def direction(event):
@@ -107,6 +108,7 @@ def coordonnees(event) :
     Pas de paramètre en entrée ou sortie.
     """
     global saisie
+    global opposant
 
     if saisie :
         if saisie : # vérifie si la saisie est activée
@@ -114,12 +116,15 @@ def coordonnees(event) :
             li = (event.y-100) // 60 #détermination de la ligne avec une division euclidienne des coordonnées horizontales par la taille des cases en prenant en compte la marge de 100 pixels pour la ligne
 
             if li >= 0 : #verification que le clic est dans la grille et non la marge en haut
-                placement(li, col)
+                if opposant == 0 :
+                    placement_joueurs(li, col)
+                else :
+                    placement_ia(li, col)
 
             else :  #message d'erreur si hors de la grille
                 dessin_message("Clic en dehors de la grille")
 
-def placement(li, col) :
+def placement_joueurs(li, col) :
     """
     Fonction de placement, gère le positionnement des bateaux tant que la phase de placement est active puis le bombardage sur la grille ennemie
 
@@ -243,6 +248,114 @@ def placement(li, col) :
                         bateaux_coulé = False
                 if bateaux_coulé : #si plus de bateaux : victoire
                     victoire(tour_joueur_1)
+
+def placement_ia(li, col) :
+    global tour_joueur_1
+    global placement1_fini
+    global placement_en_cour
+    global horizontal
+
+    dessin_message("")
+    noms_bateaux = ["Torpilleur (2 cases)", "Sous-marin (3 cases)", "Contre torpilleur (3 cases)", "Croiseur (4 cases)", "Porte-avions (5 cases)"]
+
+    #phase de placement initial des bateaux
+    if placement_en_cour :
+
+        #assignage des variables en fonction du tour du joueur
+        if tour_joueur_1 :
+            grille = grille_1
+            bateaux = bateaux1
+            if horizontal : #si le placment est horizontal
+                if (bateaux[0] + col) <= 10 : #vérification que le bateau ne dépasse pas de la grille horizontalement
+                    champs_libre = True
+
+                    for index in range(0, bateaux[0]) : #vérification qu'un autre bateau ne bloque pas celui qu'on place, je sais que c'est pas beau mais c'est la meilleure idée que j'ai...
+                            if grille[li][col + index] != 0 :
+                                champs_libre = False
+
+                    if champs_libre : #placement du bateau sans oublier de le retirer de la liste des bateaux a placer
+                        for index in range(0, bateaux[0]) :
+                            grille[li][col + index] = len(bateaux) 
+                        dessin_bateaux(li,col, True, bateaux.pop(0))
+
+                        dessin_message("Veuillez placer le " + noms_bateaux[len(bateaux)-1])
+
+                    else :
+                        dessin_message("Le bateau est bloqué par un autre bateau déjà placé !")
+                else :
+                    dessin_message("Le bateau dépasse de la grille !")
+
+            else : #si le placment est vertical
+                if (bateaux[0] + li) <= 10 : #vérification que le bateau ne dépasse pas de la grille verticalement
+                    champs_libre = True
+
+                    for index in range(0, bateaux[0]) : #vérification qu'un autre bateau ne bloque pas celui qu'on place, je sais que c'est pas beau mais c'est la meilleure idée que j'ai...
+                            if grille[li + index][col] != 0 :
+                                champs_libre = False
+
+                    if champs_libre : #placement du bateau sans oublier de le retirer de la liste des bateaux a placer
+                        for index in range(0, bateaux[0]) :
+                            grille[li + index][col] = len(bateaux) 
+                        dessin_bateaux(li,col, False, bateaux.pop(0))
+                    else :
+                        dessin_message("Le bateau est bloqué par un autre bateau déjà placé !")
+                else :
+                    dessin_message("Le bateau dépasse de la grille !")
+                
+        if not bateaux1 and not placement1_fini: #changement de tour si les bateaux du joueur 1 sont placé et passage a la phase suivante si c'est l cas des bateaux du joueur 2
+            tour_joueur_1 = False
+            placement1_fini = True
+            dessin_message("Placement des bateaux du joueur 1 fini")
+            time.sleep(0.7)
+            dessin_message("")
+            dessin_grille()
+            
+            grille = grille_2
+
+            while bateaux2 :
+                li = random.randint(0, 9)
+                col = random.randint(0, 9)
+                vert = random.randint(0, 1) 
+                if vert == 0 :
+                    vert = True
+                else :
+                    vert = False
+                if horizontal : #si le placment est horizontal
+                    if (bateaux2[0] + col) <= 10 : #vérification que le bateau ne dépasse pas de la grille horizontalement
+                        champs_libre = True
+
+                        for index in range(0, bateaux2[0]) : #vérification qu'un autre bateau ne bloque pas celui qu'on place, je sais que c'est pas beau mais c'est la meilleure idée que j'ai...
+                                if grille[li][col + index] != 0 :
+                                    champs_libre = False
+
+                        if champs_libre : #placement du bateau sans oublier de le retirer de la liste des bateaux a placer
+                            for index in range(0, bateaux2[0]) :
+                                grille[li][col + index] = len(bateaux2) 
+                            bateaux2.pop(0)
+                else : #si le placment est vertical
+                    if (bateaux2[0] + li) <= 10 : #vérification que le bateau ne dépasse pas de la grille verticalement
+                        champs_libre = True
+
+                        for index in range(0, bateaux2[0]) : #vérification qu'un autre bateau ne bloque pas celui qu'on place, je sais que c'est pas beau mais c'est la meilleure idée que j'ai...
+                                if grille[li + index][col] != 0 :
+                                    champs_libre = False
+
+                        if champs_libre : #placement du bateau sans oublier de le retirer de la liste des bateaux a placer
+                            for index in range(0, bateaux2[0]) :
+                                grille[li + index][col] = len(bateaux2) 
+                            bateaux2.pop(0)
+
+            affichage_grille()
+
+        if not bateaux2 :
+            tour_joueur_1 = True
+            placement_en_cour = False
+            dessin_message("Placement des bateaux du joueur 2 fini")
+            time.sleep(0.7)
+            dessin_message("")
+            dessin_grille()
+            dessin_tour(tour_joueur_1)
+            dessin_message("Veillez choisir une case à bombarder.")
 
 def victoire(tour_joueur1) :
     global saisie
