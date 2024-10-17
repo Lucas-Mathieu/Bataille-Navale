@@ -413,7 +413,7 @@ def placement_ia(li, col) :
                 coulé = False
                 while not coulé :
                     if not mode_chasse :
-                        coulé = AI_difficile_placage_semi_random(grille_1)
+                        coulé = IA_difficile_placage_semi_random(grille_1)
                     else :
                         li, col = coord_bateau_touché
                         directions_ciblage = [(li, col-1), (li, col+1), (li-1, col), (li+1, col)]
@@ -429,7 +429,7 @@ def placement_ia(li, col) :
                                         direction_IA = 0
                                         mode_chasse = False
                                         coulé = True
-                                        AI_difficile_placage_semi_random(grille_1)
+                                        IA_difficile_placage_semi_random(grille_1)
 
                                 elif grille_1[li][col] == 0:
                                     time.sleep(0.5)
@@ -445,10 +445,10 @@ def placement_ia(li, col) :
 
                                 else:
                                     time.sleep(0.5)
+                                    bateau_touché = grille_1[li][col]
                                     grille_1[li][col] = 7
-                                    dessin_message("L'IA a touché un bateau !")
                                     dessin_bombe(li, col, True)
-                                    time.sleep(1)
+
                                     # Mettre à jour directions_ciblage avec de nouvelles coordonnées dans la même direction
                                     if direction_IA == 0:
                                         directions_ciblage[direction_IA] = (li, col-1)
@@ -458,13 +458,42 @@ def placement_ia(li, col) :
                                         directions_ciblage[direction_IA] = (li-1, col)
                                     elif direction_IA == 3:
                                         directions_ciblage[direction_IA] = (li+1, col)
+
+                                    bateau_en_vie = False
+
+                                    # Parcourt la matrice et vérifie si le bateau touché a entièrement coulé
+                                    for ligne in grille_1:
+                                        if bateau_touché in ligne:
+                                            bateau_en_vie = True
+
+                                    if bateau_en_vie:
+                                        dessin_message("L'IA a touché un bateau !")
+                                    else:
+                                        dessin_message("Le " + noms_bateaux[bateau_touché - 1] + " a Coulé !")
+                                        direction_IA = 0
+                                        coulé = True
+                                        mode_chasse = False
+                                        bateaux_coulé = True
+                                        
+                                        # Parcourt la matrice et vérifie s'il reste au moins un bateau
+                                        for ligne in grille_1:
+                                            if any(cell in ligne for cell in [1, 2, 3, 4, 5]):
+                                                bateaux_coulé = False
+
+                                        if bateaux_coulé:  # Si plus de bateaux : victoire
+                                            victoire(False)
+                                            
+                                        time.sleep(1)
+                                        IA_difficile_placage_semi_random(grille_1)
+                                    time.sleep(1)
+
                             else:
                                 direction_IA += 1
-                                if direction_IA == 4:
+                                if direction_IA == 4: # sors du mode chasse si toutes les directions ont été essayées
                                     direction_IA = 0
-                                    mode_chasse = False  # Désactiver le mode chasse si toutes les directions ont été essayées
+                                    mode_chasse = False  
                                     coulé = True
-                                    AI_difficile_placage_semi_random(grille_1)
+                                    IA_difficile_placage_semi_random(grille_1)
 
             tour_joueur_1 = True
             dessin_tour(tour_joueur_1)
@@ -544,7 +573,7 @@ def IA_facile(noms_bateaux) :
                 if bateaux_coulé : #si plus de bateaux : victoire
                     victoire(False)
 
-def AI_difficile_placage_semi_random(grille) :
+def IA_difficile_placage_semi_random(grille) :
     """
     Fonction de l'IA difficile qui effectue des tirs semi-aléatoires sur la grille de jeu en ciblant les cases impaires.
 
