@@ -23,6 +23,7 @@ def initialisation() :
     global grille_1, grille_2, tour_joueur_1 #var jeu
     global bateaux1, bateaux2, horizontal, placement1_fini, saisie, placement_en_cour #var placement via souris
     global opposant, mode_chasse, coord_bateau_touché, direction_IA #var IA
+    global classement
 
     grille_1 = [[0] * 10 for x in range(10)]
     grille_2 = [[0] * 10 for x in range(10)]
@@ -37,6 +38,7 @@ def initialisation() :
     mode_chasse = False
     coord_bateau_touché = (-1,-1)
     direction_IA = 0
+    classement = {}
 
 def activation_ia_facile() :
     """
@@ -626,6 +628,7 @@ def victoire(tour_joueur1) :
         gagnant = "Joueur 2"
 
     dessin_message("Le " + gagnant + " a gagné la partie !")
+    enregistrer_resultat()
     saisie = False
 
 def dessin_grille() :
@@ -777,18 +780,83 @@ def chargement():
             grille_1 = eval(lines[0].split(": ")[1].strip())
             grille_2 = eval(lines[1].split(": ")[1].strip())
             tour_joueur_1 = eval(lines[2].split(": ")[1].strip())
+            horizontal = eval(lines[3].split(": ")[1].strip())
+            saisie = eval(lines[4].split(": ")[1].strip())
+            opposant = eval(lines[5].split(": ")[1].strip())
+            mode_chasse = eval(lines[6].split(": ")[1].strip())
+            coord_bateau_touché = eval(lines[7].split(": ")[1].strip())
+            direction_IA = eval(lines[8].split(": ")[1].strip())
             placement_en_cour = False
-            horizontal = eval(lines[6].split(": ")[1].strip())
-            saisie = eval(lines[8].split(": ")[1].strip())
-            opposant = eval(lines[9].split(": ")[1].strip())
-            mode_chasse = eval(lines[10].split(": ")[1].strip())
-            coord_bateau_touché = eval(lines[11].split(": ")[1].strip())
-            direction_IA = eval(lines[12].split(": ")[1].strip())
         dessin_tour(tour_joueur_1)
         dessin_autre_joueur()
         dessin_message("Veillez choisir une case à bombarder.")
     else:
         dessin_message("Aucune sauvegarde trouvée.")
+
+def charger_classement(fichier="classement.txt"):
+    """
+    Charge le classement des joueurs à partir d'un fichier texte.
+
+    Paramètres:
+        fichier: Nom du fichier à partir duquel charger le classement. Par défaut, "classement.txt".
+    """
+    global classement
+
+    # Obtenir le répertoire courant
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    fichier = os.path.join(current_directory, "classement.txt")
+
+    if os.path.exists(fichier):
+        with open(fichier, 'r') as f:
+            for line in f:
+                joueur, victoires, defaites = line.strip().split(":")
+                classement[joueur] = {"victoires": int(victoires), "defaites": int(defaites)}
+
+def afficher_classement():
+    """
+    Affiche le classement des joueurs.
+    """
+    global classement
+
+    print("Classement des joueurs :")
+    for joueur, scores in classement.items():
+        print(f"{joueur} - Victoires : {scores['victoires']}, Défaites : {scores['defaites']}")
+
+def enregistrer_resultat():
+    """
+    Enregistre les résultats d'une partie et met à jour le classement.
+
+    Paramètres globnaux:
+        classement
+        tour_joueur 
+    """
+
+    global classement
+    global tour_joueur_1
+
+    if tour_joueur_1 :
+        joueur_gagnant = "Joueur 1"
+        joueur_perdant = "Joueur 2"
+    else :
+        joueur_gagnant = "Joueur 2"
+        joueur_perdant = "Joueur 1"
+        
+
+    if joueur_gagnant not in classement:
+        classement[joueur_gagnant] = {"victoires": 0, "defaites": 0}
+    if joueur_perdant not in classement:
+        classement[joueur_perdant] = {"victoires": 0, "defaites": 0}
+
+    classement[joueur_gagnant]["victoires"] += 1
+    classement[joueur_perdant]["defaites"] += 1
+
+    # Obtenir le répertoire courant
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    fichier = os.path.join(current_directory, "classement.txt")
+
+    with open(fichier, 'w') as f:
+        for joueur, scores in classement.items():
+            f.write(f"{joueur}:{scores['victoires']}:{scores['defaites']}\n")
 
 """================PROGRAMME PRINCIPAL================"""
 
@@ -813,6 +881,8 @@ charger=Button(fen, text="Charger",command=chargement)
 charger.place(x=527, y=35)
 
 initialisation()
+charger_classement()
+afficher_classement()
 dessin_grille()
 dessin_tour("Joueur 1")
 dessin_message("Veuillez placer le Porte-avions (5 cases)")
