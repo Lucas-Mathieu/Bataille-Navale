@@ -291,6 +291,11 @@ def placement_joueurs(li, col) :
                     victoire(tour_joueur_1)
 
 def placement_ia(li, col) :
+    """
+    Fonction de placement de l'IA, gère le positionnement des bateaux tant que la phase de placement est active puis le bombardage sur la grille ennemie, gère les appels d'IA.
+
+    Prends en paramètre la ligne et la colonne choisie, ne retourne rien. 
+    """
     global tour_joueur_1
     global placement1_fini
     global placement_en_cour
@@ -584,6 +589,9 @@ def IA_difficile_placage_semi_random(grille) :
     Variables Globales:
         mode_chasse: Booléen indiquant si l'IA est en mode chasse.
         coord_bateau_touché: Tuple avec les coordonnées du bateau touché par l'IA.
+
+    Retourne:
+        coulé: indique si la bombe à coulé pour arreter la boucle d'appel
     """
     global mode_chasse
     global coord_bateau_touché
@@ -601,6 +609,7 @@ def IA_difficile_placage_semi_random(grille) :
             dessin_bombe(li, col, False)
             time.sleep(1)
             return True #on stop la boucle while
+        
         elif grille[li][col] in [1, 2, 3, 4, 5]:
             time.sleep(0.5)
             grille[li][col] = 7 #bombe touchée
